@@ -1,0 +1,21 @@
+# Build
+build/
+.gradle/
+*.apk
+*.aar
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Local properties
+local.properties
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Android Studio
+captures/
+.externalNativeBuild
