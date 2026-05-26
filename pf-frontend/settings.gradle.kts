@@ -19,5 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Plag-Out"
+rootProject.name = "plag-out"
 include(":app")
+ 
