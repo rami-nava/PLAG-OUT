@@ -101,7 +101,6 @@ class GDDViewModel : ViewModel() {
                             isLoading = false,
                             successMessage = data.message
                         )
-                        System.out.println("AAAAAAA:A" + data.targetGDD)
                     }
                 } else {
                     _state.value = _state.value.copy(

@@ -21,8 +21,6 @@ class GDDSimulationRequest(BaseModel):
     cropName: str 
     notes: str 
     
-class Config:
-    populate_by_name = True
 
 class GDDSimulationResponse(BaseModel):
     current_gdd: int

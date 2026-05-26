@@ -1,8 +1,10 @@
 package com.example.plag_out
 
+import android.app.DatePickerDialog
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,6 +41,23 @@ import androidx.compose.ui.unit.sp
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material3.IconButton
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.LocalContext
+import java.util.Calendar
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -59,7 +78,7 @@ fun GDDApp(viewModel: GDDViewModel) {
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("🌾 Plagas GDD", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text("🌾 PLAG-OUT", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White)
             Text("Predictor de desarrollo de plagas", fontSize = 12.sp, color = Color.White.copy(alpha = 0.9f))
         }
 
@@ -264,73 +283,194 @@ fun SimulatorScreen(state: AppState, viewModel: GDDViewModel) {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ConfigScreen(state: AppState, viewModel: GDDViewModel, onTabChange: (Int) -> Unit) {
+    var showDatePicker by remember { mutableStateOf(false) }
+    var isDatePickerForStart by remember { mutableStateOf(true) }
+    val context = LocalContext.current
+
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        // UBICACIÓN
+        Text(
+            "📍 Ubicación",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+
         OutlinedTextField(
             value = state.latitude.toString(),
-            onValueChange = { viewModel.updateConfig(latitude = it.toDoubleOrNull() ?: state.latitude) },
-            label = { Text("📍 Latitud") },
-            modifier = Modifier.fillMaxWidth()
+            onValueChange = {
+                viewModel.updateConfig(latitude = it.toDoubleOrNull() ?: 0.0)
+            },
+            label = { Text("Latitud") },
+            modifier = Modifier.fillMaxWidth(),
+            trailingIcon = {
+                if (state.latitude != 0.0) {
+                    IconButton(onClick = { viewModel.updateConfig(latitude = -34.6037) }) {
+                        Icon(Icons.Default.Clear, contentDescription = "Limpiar")
+                    }
+                }
+            }
         )
 
         OutlinedTextField(
             value = state.longitude.toString(),
-            onValueChange = { viewModel.updateConfig(longitude = it.toDoubleOrNull() ?: state.longitude) },
-            label = { Text("📍 Longitud") },
-            modifier = Modifier.fillMaxWidth()
+            onValueChange = {
+                viewModel.updateConfig(longitude = it.toDoubleOrNull() ?: 0.0)
+            },
+            label = { Text("Longitud") },
+            modifier = Modifier.fillMaxWidth(),
+            trailingIcon = {
+                if (state.longitude != -58.3816) {
+                    IconButton(onClick = { viewModel.updateConfig(longitude = -58.3816) }) {
+                        Icon(Icons.Default.Clear, contentDescription = "Limpiar")
+                    }
+                }
+            }
+        )
+
+        Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+        // FECHAS
+        Text(
+            "📅 Fechas",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(top = 8.dp)
         )
 
         OutlinedTextField(
             value = state.startDate,
-            onValueChange = { viewModel.updateConfig(startDate = it) },
-            label = { Text("📅 Fecha Inicio") },
-            modifier = Modifier.fillMaxWidth()
+            onValueChange = {},
+            label = { Text("Fecha Inicio") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    showDatePicker = true
+                },
+            readOnly = true,
+            trailingIcon = {
+                IconButton(onClick = {
+                    showDatePickerDialog(context, LocalDate.parse(state.startDate)) { newDate ->
+                        viewModel.updateConfig(startDate = newDate)
+                    }
+                }) {
+                    Icon(Icons.Default.DateRange, contentDescription = "Seleccionar fecha")
+                }
+            }
+        )
+
+
+
+
+
+        Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+        // PARÁMETROS GDD
+        Text(
+            "🌡️ Parámetros GDD",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(top = 8.dp)
         )
 
         OutlinedTextField(
-            value = state.baseTemp.toString(),
-            onValueChange = { viewModel.updateConfig(baseTemp = it.toDoubleOrNull() ?: state.baseTemp) },
-            label = { Text("🌡️ Temp Base (Tbase)") },
-            modifier = Modifier.fillMaxWidth()
+            value = if (state.baseTemp == 0.0) "" else state.baseTemp.toString(),
+            onValueChange = {
+                viewModel.updateConfig(baseTemp = it.toDoubleOrNull() ?: 0.0)
+            },
+            label = { Text("Temperatura Base (Tbase)") },
+            modifier = Modifier.fillMaxWidth(),
+            trailingIcon = {
+                if (state.baseTemp != 0.0) {
+                    IconButton(onClick = { viewModel.updateConfig(baseTemp = 10.0) }) {
+                        Icon(Icons.Default.Clear, contentDescription = "Limpiar")
+                    }
+                }
+            }
         )
 
         OutlinedTextField(
             value = state.initialGDD.toString(),
-            onValueChange = { viewModel.updateConfig(initialGDD = it.toIntOrNull() ?: state.initialGDD) },
-            label = { Text("🎯 GDD Inicial") },
-            modifier = Modifier.fillMaxWidth()
+            onValueChange = {
+                viewModel.updateConfig(initialGDD = it.toIntOrNull() ?: 0)
+            },
+            label = { Text("GDD Inicial") },
+            modifier = Modifier.fillMaxWidth(),
+            trailingIcon = {
+                if (state.initialGDD != 0) {
+                    IconButton(onClick = { viewModel.updateConfig(initialGDD = 0) }) {
+                        Icon(Icons.Default.Clear, contentDescription = "Limpiar")
+                    }
+                }
+            }
         )
 
         OutlinedTextField(
-            value = state.targetGDD.toString(),
-            onValueChange = { viewModel.updateConfig(targetGDD = it.toIntOrNull() ?: state.targetGDD) },
-            label = { Text("🎯 GDD Objetivo") },
-            modifier = Modifier.fillMaxWidth()
+            value = if (state.targetGDD == 0) "" else state.targetGDD.toString(),
+            onValueChange = {
+                viewModel.updateConfig(targetGDD = it.toIntOrNull() ?: 0)
+            },
+            label = { Text("GDD Objetivo") },
+            modifier = Modifier.fillMaxWidth(),
+            trailingIcon = {
+                if (state.targetGDD != 500) {
+                    IconButton(onClick = { viewModel.updateConfig(targetGDD = 500) }) {
+                        Icon(Icons.Default.Clear, contentDescription = "Limpiar")
+                    }
+                }
+            }
+        )
+
+        Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+        // CULTIVO Y NOTAS
+        Text(
+            "🌾 Cultivo y Notas",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(top = 8.dp)
         )
 
         OutlinedTextField(
             value = state.cropName,
             onValueChange = { viewModel.updateConfig(cropName = it) },
-            label = { Text("🌾 Cultivo / Plaga") },
-            modifier = Modifier.fillMaxWidth()
+            label = { Text("Cultivo / Plaga") },
+            modifier = Modifier.fillMaxWidth(),
+            trailingIcon = {
+                if (state.cropName.isNotEmpty()) {
+                    IconButton(onClick = { viewModel.updateConfig(cropName = "") }) {
+                        Icon(Icons.Default.Clear, contentDescription = "Limpiar")
+                    }
+                }
+            }
         )
 
         OutlinedTextField(
             value = state.notes,
             onValueChange = { viewModel.updateConfig(notes = it) },
-            label = { Text("📝 Notas") },
+            label = { Text("Notas") },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(100.dp),
-            maxLines = 3
+            maxLines = 3,
+            trailingIcon = {
+                if (state.notes.isNotEmpty()) {
+                    IconButton(onClick = { viewModel.updateConfig(notes = "") }) {
+                        Icon(Icons.Default.Clear, contentDescription = "Limpiar")
+                    }
+                }
+            }
         )
 
         Button(
             onClick = {
                 viewModel.resetSimulation()
-                onTabChange(0) },
+                onTabChange(0)
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
@@ -354,9 +494,71 @@ fun ConfigScreen(state: AppState, viewModel: GDDViewModel, onTabChange: (Int) ->
                 Text("Arañita Roja: Tbase=11°C, GDD=350-600", fontSize = 12.sp)
             }
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
+// Composable para el selector de fechas
+@Composable
+fun DatePickerDialog(
+    onDateSelected: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val calendar = Calendar.getInstance()
+    var year by remember { mutableStateOf(calendar.get(Calendar.YEAR)) }
+    var month by remember { mutableStateOf(calendar.get(Calendar.MONTH)) }
+    var day by remember { mutableStateOf(calendar.get(Calendar.DAY_OF_MONTH)) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Seleccionar Fecha") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Año
+                OutlinedTextField(
+                    value = year.toString(),
+                    onValueChange = { year = it.toIntOrNull() ?: year },
+                    label = { Text("Año") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                // Mes
+                OutlinedTextField(
+                    value = (month + 1).toString(),
+                    onValueChange = { m ->
+                        val newMonth = m.toIntOrNull() ?: (month + 1)
+                        if (newMonth in 1..12) month = newMonth - 1
+                    },
+                    label = { Text("Mes (1-12)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                // Día
+                OutlinedTextField(
+                    value = day.toString(),
+                    onValueChange = { d ->
+                        val newDay = d.toIntOrNull() ?: day
+                        if (newDay in 1..31) day = newDay
+                    },
+                    label = { Text("Día") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = {
+                val selectedDate = String.format("%04d-%02d-%02d", year, month + 1, day)
+                onDateSelected(selectedDate)
+            }) {
+                Text("Aceptar")
+            }
+        },
+        dismissButton = {
+            Button(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
+}
 @Composable
 fun InfoRow(label: String, value: String) {
     Row(
@@ -378,4 +580,23 @@ fun formatDate(dateStr: String): String {
     } catch (e: Exception) {
         dateStr
     }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun showDatePickerDialog(
+    context: android.content.Context,
+    initialDate: LocalDate,
+    onDateSelected: (String) -> Unit
+) {
+    val datePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, day ->
+            val selectedDate = String.format("%04d-%02d-%02d", year, month + 1, day)
+            onDateSelected(selectedDate)
+        },
+        initialDate.year,
+        initialDate.monthValue - 1,
+        initialDate.dayOfMonth
+    )
+    datePickerDialog.show()
 }
