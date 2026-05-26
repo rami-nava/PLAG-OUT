@@ -1,21 +1,31 @@
-# Build
-build/
+# Gradle
 .gradle/
+build/
 *.apk
 *.aar
 
-# IDE
+# Android Studio
 .idea/
-.vscode/
+.DS_Store
 *.iml
-
-# Local properties
+*.log
 local.properties
 
-# OS
-.DS_Store
-Thumbs.db
+# Dependencias
+.m2/
 
-# Android Studio
+# Archivos temporales
+*.swp
+*.swo
+*~
+.classpath
+.project
+.settings/
+*.sublime-workspace
+
+# Node (si usas)
+node_modules/
+
+# Otros
+out/
 captures/
-.externalNativeBuild
